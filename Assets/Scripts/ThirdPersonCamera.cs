@@ -52,7 +52,6 @@ public class ThirdPersonCamera : MonoBehaviour
             return;
         }
 
-        // Пытаемся найти PlayerMovement на цели (для проверки, идёт игрок или нет)
         _playerMovement = target.GetComponent<PlayerMovement>();
 
         _yaw = target.eulerAngles.y;
@@ -60,7 +59,6 @@ public class ThirdPersonCamera : MonoBehaviour
         _smoothTargetPos = target.position + Vector3.up * targetHeightOffset;
         _lastMouseMoveTime = Time.time;
 
-        // Захватываем курсор для комфортного управления мышью
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -73,7 +71,6 @@ public class ThirdPersonCamera : MonoBehaviour
         HandleAutoAlign();
         HandlePosition();
 
-        // Слежение за точкой взгляда
         Vector3 desiredTargetPos = target.position + Vector3.up * targetHeightOffset;
         _smoothTargetPos = Vector3.SmoothDamp(
             _smoothTargetPos,
@@ -84,7 +81,6 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void Update()
     {
-        // Escape — освободить/захватить курсор (для отладки и удобства)
         var keyboard = Keyboard.current;
         if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
         {
@@ -95,7 +91,6 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
-    // ==================== МЫШЬ ====================
     private void HandleMouseInput()
     {
         var mouse = Mouse.current;
@@ -107,7 +102,6 @@ public class ThirdPersonCamera : MonoBehaviour
 
         if (delta.sqrMagnitude > 0.01f)
         {
-            // Мышь двинули — отменяем авто-выравнивание
             _lastMouseMoveTime = Time.time;
             _isAutoAligning = false;
 
@@ -117,16 +111,13 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
-    // ==================== АВТО-ВЫРАВНИВАНИЕ ====================
     private void HandleAutoAlign()
     {
         if (!autoAlign) return;
         if (target == null) return;
 
-        // Идёт ли игрок?
         bool playerIsMoving = _playerMovement != null && _playerMovement.IsMoving;
 
-        // Прошло ли достаточно времени без движения мыши?
         bool enoughIdleTime = Time.time - _lastMouseMoveTime >= autoAlignDelay;
 
         if (!playerIsMoving || !enoughIdleTime)
@@ -135,14 +126,11 @@ public class ThirdPersonCamera : MonoBehaviour
             return;
         }
 
-        // Целевой yaw — куда смотрит игрок
         float desiredYaw = target.eulerAngles.y;
         float currentYaw = _yaw;
 
-        // Разница по кратчайшему пути
         float diff = Mathf.DeltaAngle(currentYaw, desiredYaw);
 
-        // Уже выровнено — ничего не делаем
         if (Mathf.Abs(diff) < autoAlignAngleThreshold)
         {
             _yaw = desiredYaw;
@@ -152,26 +140,21 @@ public class ThirdPersonCamera : MonoBehaviour
 
         _isAutoAligning = true;
 
-        // Плавно подтягиваем yaw
         _yaw = Mathf.SmoothDampAngle(
             currentYaw,
             desiredYaw,
             ref _yawVelocity,
             autoAlignSmoothTime);
 
-        // Плавно возвращаем pitch к нейтральному (20°)
         _pitch = Mathf.Lerp(_pitch, 20f, Time.deltaTime / autoAlignSmoothTime);
     }
 
-    // ==================== ПОЗИЦИЯ ====================
     private void HandlePosition()
     {
-        // Считаем позицию от уже сглаженной точки взгляда
         Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0);
         Vector3 direction = rotation * Vector3.back;
         Vector3 desiredCameraPos = _smoothTargetPos + direction * distance;
 
-        // Не проходим сквозь стены
         if (Physics.SphereCast(
                 _smoothTargetPos,
                 collisionRadius,

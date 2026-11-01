@@ -36,7 +36,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start()
     {
-        // Если камера не назначена — ищем Main Camera автоматически
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
     }
@@ -61,12 +60,10 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = -2f;
     }
 
-    // ==================== ПОВОРОТ ЗА КАМЕРОЙ ====================
     private void HandleRotation()
     {
         if (cameraTransform == null) return;
 
-        // Берём направление камеры, обнуляем вертикаль (чтобы капсула не наклонялась)
         Vector3 cameraForward = cameraTransform.forward;
         cameraForward.y = 0f;
         cameraForward.Normalize();
@@ -80,7 +77,6 @@ public class PlayerMovement : MonoBehaviour
             rotationSpeed * Time.deltaTime);
     }
 
-    // ==================== ДВИЖЕНИЕ ====================
     private void HandleMovement()
     {
         var keyboard = Keyboard.current;
@@ -94,7 +90,6 @@ public class PlayerMovement : MonoBehaviour
         if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) z -= 1f;
         if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) z += 1f;
 
-        // Движение ОТНОСИТЕЛЬНО ПЕРСОНАЖА (а не мира!)
         Vector3 move = transform.right * x + transform.forward * z;
 
         IsMoving = new Vector2(x, z).sqrMagnitude > 0.01f;
@@ -109,7 +104,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ==================== ПРЫЖОК ====================
     private void HandleJump()
     {
         var keyboard = Keyboard.current;
